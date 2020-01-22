@@ -9,6 +9,7 @@
 
 - name: setup load-balancer tier
   hosts: frontends
+  gather_facts: true
   become: yes
   roles:
     - {name: base-config, tags: base-config}

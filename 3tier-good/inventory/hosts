@@ -11,4 +11,3 @@ appdb1.a91f.internal ansible_ssh_host=appdb1.a91f.example.opentlc.com
 ## These are the support
 [support]
 support1.a91f.internal ansible_ssh_host=support1.a91f.example.opentlc.com
-
