@@ -1,0 +1,10 @@
+---
+- name: Create virtualenv on grading host and clone FTL to it
+  #hosts: grading_host
+  hosts: all
+  gather_facts: false
+  become: true
+
+  roles:
+    - ftl-injector
+...

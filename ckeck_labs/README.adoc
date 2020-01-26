@@ -1,0 +1,125 @@
+:toc:
+:toc-placement!:
+
+== FTL Overview
+
+FTL, *Finish The Labs*, is currently a student invoked automated lab grading system
+designed to allow students to self mark their *OPENTLC* labs to see if they
+have passed them correctly. Other uses include lab and lab environment validation.
+
+
+
+On *failure* it highlights the failed sections via Instructor supplied  error
+messages. Students have unlimited attempts and can run the grading at any time,
+without penalty.
+
+On *success* it:
+
+. Informs the student
+. Updates the LMS (at this point the `grade-update-lms` role is a stub
+toc::[]
+
+=== Changelog
+
+A detailed link:docs/CHANGELOG.adoc[Changelog can be found here] - keep it up to date 
+
+=== Structure 
+
+[source,bash]
+----
+├── README.adoc                 # This document
+├── ansible.cfg                 # Default ansible.cfg - can be over-riddden
+├── courses/                    # Directory containing course and their graders and solvers
+├── docs/                       # Documentation - see below for overview
+├── main.yml                    # Main entry point to grade or solve a lab
+├── roles/                      # Top level roles directory, can be supplemented at a course/lab level 
+├── vars/                       # Set global *common* vars reports etc
+└── devel                       # developer tools, data, scripts, playbooks
+----
+
+=== Documentation:
+
+A documentation directory is provided `docs/`
+
+. This README.adoc - A General Overview
+. link:docs/Lab_Grade_Author_Guide.adoc[Lab Grading Author Guide] - Creating Lab Test Playbooks
+. link:docs/FTL_Deployer_Guide.adoc[Deployer Guide] - Deploying, Installing, and Executing Lab Tests
+
+
+=== Terminology
+
+A small number of terms are defined below
+
+* *grader host* - Host that the student works from, typically bastion or workstation
+* *graders* - Graders are playbooks that grade a lab, they are typically invoked via the `grade_lab` command which is installed at deployment time.
+* *solvers* - Solvers are playbooks that solver labs i.e. they apply all the necessary ansible tasks to move complete a lab.
+* *grader roles* - grader roles, in the `roles` directory provide pre-built roles for testing specfic, and common, scenarios e.g.
+
+** grader_check_command_output
+** grader_check_file_exists
+** grader_check_ocp_node_exists
+** grader_check_ocp_route_exists
+** grader_check_ocp_svc_exists
+** grader_check_package_installed
+** grader_check_service_enabled
+** grader_check_service_started
+** grader_check_user_exists
+
+=== Workflow - Deployment
+
+FTL can be deployed via push i.e. inserted into a lab at the deployment
+stage. An obvious example being inserted via Ansible Agnostic Deployer in the
+Post Software stage of a config.
+
+NOTE: FTL currently clones the entire repo i.e all tests for all labs so no
+additional meta data needs to be supplied at deployment time.
+
+Alternatively it could be modified to be deployed via pull i.e. the student
+clones the FTL repo locally. This will require either a permissions change on
+the repo or a API token/login to be provided as FTL is a private repo today.
+
+=== Workflow - Developing a Lab Test
+
+
+Instructors create a series of lab checking playbooks in the correct sub-directory
+of the `courses` directory. Tests are written in `ansible` and test 1 or more
+conditions in the lab. For example:
+
+* Has package `foo` been installed
+* Does user `bar` exist
+* Does a file contain a certain line
+* Does a URI give a certain response e.g. *200* or a certain output
+
+Whilst instructors can create tests some convenience roles have been created
+to both test condition and to track score, these are detailed in the
+link:docs/FTL_Deployer_Guide.adoc[Lab Grading Author Guide*]
+
+.Sample of a typical lab test leveraging an existing role
+[source,yaml]
+----
+- name: Section 1.5, Check student has installed ansible
+  role: grader_check_package_installed
+  vars:
+    section_number: 1.5
+    student_error_message: Package not installed
+    package: ansible
+----
+
+Instructors can author custom, and more complex, tests as long as these can be
+executed in an ansible playbook. See the Documentation for more details.
+
+== Usage
+
+Students are supplied with `grade_lab` and `solve_lab` wrapper scripts, in /usr/local/bin that _typically_ take 2 arguments, course name and lab number:
+
+
+`$ grade_lab ansible_engine_foundations 03_01`
+
+== Questions:
+
+. Do students invoke the check via:
+** `CLI` on the lab machine
+** Via button in the LMS
+. Does the check action pull in the playbook(s) or are they already there?
+** i.e. backed in at lab build time
+
